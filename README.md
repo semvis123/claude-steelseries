@@ -1,6 +1,6 @@
 # Claude SteelSeries
 
-SteelSeries GameSense integration for Claude Code — displays Claude's state on Apex keyboards using RGB backlighting and the OLED display. Replaces the previous Moonside lamp integration.
+SteelSeries GameSense integration for Claude Code — displays Claude's state on Apex keyboards using RGB backlighting and the OLED display.
 
 WARNING: Run these scripts at your own risk. They interact with SteelSeries GameSense over HTTP and write transient files in /tmp.
 
