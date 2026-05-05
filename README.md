@@ -1,153 +1,122 @@
-# Claude Lamp
+# Claude SteelSeries
 
-Control your [Moonside](https://moonside.design) LED lamp via BLE based on Claude Code's state. Your lamp becomes a physical status indicator — animated themes while Claude works, green when idle, purple when it needs your input.
+SteelSeries GameSense integration for Claude Code — displays Claude's state on Apex keyboards using RGB backlighting and the OLED display. Replaces the previous Moonside lamp integration.
 
-> **WARNING** Author takes no responsibility for the hardware issues that may arise from using this script. You run these scripts at your own risk.
+WARNING: Run these scripts at your own risk. They interact with SteelSeries GameSense over HTTP and write transient files in /tmp.
 
-**NOTE** The initial connection handshake with the lamp might take few seconds, please tail the daemon logs to check it all works fine.
+## Features
 
-## Demo
-
-| State | Lamp | Trigger |
-|---|---|---|
-| **Working** | BEAT2 theme (white/navy) | Prompt submit, tool use |
-| **Idle** | Solid sunset mango | Claude finishes responding, session start |
-| **Needs input** | Solid purple | Permission request, plan approval, question, notification |
-| **Off** | LED off | Session end |
+- Per-key RGB bitmap with a subtle horizontal brightness wave; one base color per state (idle/input/working/compacting)
+- Top-row context indicator: first 16 keys (Esc, F1–F12, PrtSc, ScrLk, Pause) light up solid green proportional to the latest assistant message's context size, scaled against 500k tokens
+- OLED two-line display:
+  - top: latest session input / output token totals (▲input ▼output, with k/M suffixes)
+  - bottom: current tool + file/label (e.g. `Edit steelseries_daemon.py`, `Bash grep`, `Read README.md`) or the current state
+- Sticky tool dwell (1.5s) so fast tools like Read/Edit remain visible on the OLED after PostToolUse clears
+- `PreCompact` hook switches to a `compacting` state with a cyan wave and `compacting...` on the OLED
+- Non-blocking Claude Code hook (always exits 0)
+- macOS-first (uses SteelSeries GG `coreProps.json` to find the GameSense port)
 
 ## Requirements
 
-- macOS (BLE via CoreBluetooth)
+- macOS
 - Python 3.10+
-- [bleak](https://github.com/hbldh/bleak) (`pip install bleak`)
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
-- A Moonside lamp (tested with Halo — should work with One, Aurora, Lighthouse etc.)
+- SteelSeries GG (SteelSeries Engine) installed and running
+- SteelSeries keyboard with per-key RGB and OLED (developed against Apex Pro: 132 LEDs, 22×6 row-major bitmap). Other models with `rgb-per-key-zones` and `screened-2-lines` should work but have not been tested.
 
-## Setup
+## Installation
 
-### 1. Install bleak
-
-```sh
-pip install bleak
-```
-
-### 2. Copy scripts
+1. Copy hooks to a global location (recommended):
 
 ```sh
-mkdir -p ~/.claude/moonside_hooks
-cp claude_hooks/moonside_hook.sh claude_hooks/moonside_daemon.py ~/.claude/moonside_hooks/
-chmod +x ~/.claude/moonside_hooks/moonside_hook.sh
+mkdir -p ~/.claude/hooks
+cp claude_hooks/steelseries_hook.sh claude_hooks/steelseries_daemon.py ~/.claude/hooks/
+chmod +x ~/.claude/hooks/steelseries_hook.sh
 ```
 
-Putting them in `~/.claude/moonside_hooks/` means they work across all projects — no need to have `claude_hooks/` in every repo.
-
-### 3. Install the hooks
-
-Merge `claude_hooks/settings.json` into `~/.claude/settings.json`. The paths in the config use `$CLAUDE_PROJECT_DIR` — update them to point to `~/.claude/moonside_hooks/` instead:
+2. Merge hooks config into your Claude settings (update paths):
 
 ```sh
-sed 's|\$CLAUDE_PROJECT_DIR/claude_hooks|~/.claude/moonside_hooks|g' \
-  claude_hooks/settings.json
+# Preview updated config (replace $CLAUDE_PROJECT_DIR paths)
+sed 's|\$CLAUDE_PROJECT_DIR/claude_hooks|~/.claude/hooks|g' claude_hooks/settings.json > ~/.claude/settings.json
 ```
 
-Or just copy the JSON and replace the paths manually. The config hooks into `SessionStart`, `UserPromptSubmit`, `Stop`, `PreToolUse` (all tools), `PostToolUse`, `PermissionRequest`, `Notification`, and `SessionEnd`.
+3. Restart Claude Code (or open a new session). Hooks will invoke the shell script which starts the daemon as-needed.
 
-The daemon includes a debounce to prevent phantom working transitions (e.g. internal prompt suggestions firing PreToolUse shortly after Stop).
+## Testing and verification
 
-### 4. Restart Claude Code
-
-Open a new Claude Code session. The daemon auto-discovers your lamp by name — no address configuration needed.
-
-> **Multiple lamps?** Set `MOONSIDE_MAC` to pin a specific device. Run `python3 moonside_ble.py scan` to list devices. On macOS, addresses are UUIDs (not MAC addresses).
-
-## Architecture
-
-```
-Claude Code hook event
-  → moonside_hook.sh (writes state to /tmp/moonside_state, launches daemon if needed)
-    → moonside_daemon.py (persistent BLE connection, reads state file every 200ms)
-      → Moonside lamp via BLE (Nordic UART Service)
-```
-
-The daemon keeps a persistent BLE connection to avoid 2-5s reconnect latency on every hook event. It runs in the background and auto-exits after 30 minutes of idle or on `SessionEnd`.
-
-### Files
-
-| File | Purpose |
-|---|---|
-| `claude_hooks/moonside_hook.sh` | Shell hook called by Claude Code. Writes state, starts daemon if needed. Always exits 0. |
-| `claude_hooks/moonside_daemon.py` | Background daemon with persistent BLE connection, state machine, and idle→working debounce. |
-| `claude_hooks/settings.json` | Ready-to-use Claude Code hooks config. Copy/merge into `~/.claude/settings.json`. |
-| `moonside_ble.py` | Standalone BLE controller for Moonside lamps. Usable directly from the command line. |
-
-### Daemon lifecycle
-
-- **PID file:** `/tmp/moonside_daemon.pid`
-- **State file:** `/tmp/moonside_state`
-- **Log file:** `/tmp/moonside_daemon.log`
-
-## Standalone BLE controller
-
-`moonside_ble.py` can be used independently of Claude Code:
+Prerequisite: SteelSeries GG must be running. Confirm coreProps.json exists:
 
 ```sh
-python3 moonside_ble.py scan                     # find devices
-python3 moonside_ble.py on                        # turn on
-python3 moonside_ble.py off                       # turn off
-python3 moonside_ble.py color 255 0 128           # set color
-python3 moonside_ble.py color 255 0 128 --brightness 80
-python3 moonside_ble.py theme rainbow3            # activate theme
-python3 moonside_ble.py theme fire2 --colors 255,50,0
-python3 moonside_ble.py raw "THEME.GRADIENT1.255,0,0,0,0,255"
-python3 moonside_ble.py interactive               # REPL mode
+cat "/Library/Application Support/SteelSeries Engine 3/coreProps.json"
+```
+
+Run the daemon manually to watch logs:
+
+```sh
+python3 ~/.claude/hooks/steelseries_daemon.py &
+tail -f /tmp/ss_daemon.log
+```
+
+Simulate a hook invocation (pipe JSON to the hook):
+
+```sh
+echo '{"tool_name": "Edit", "tool_input": {"file_path": "/tmp/foo.py"}, "transcript_path": "/tmp/test_transcript.jsonl"}' \
+  | bash ~/.claude/hooks/steelseries_hook.sh working
+# Verify transient files
+cat /tmp/ss_state        # → working
+cat /tmp/ss_tool         # → Edit
+cat /tmp/ss_tool_label   # → foo.py
+cat /tmp/ss_transcript   # → /tmp/test_transcript.jsonl
+```
+
+Check daemon log for GameSense registration and posted events. You can also verify GameSense HTTP is reachable by reading coreProps.json (address like 127.0.0.1:PORT) and curling the metadata endpoint:
+
+```sh
+addr=$(jq -r '.address' "/Library/Application Support/SteelSeries Engine 3/coreProps.json")
+curl -s "http://$addr/game_metadata"
+```
+
+Validate OLED content: daemon posts SS_OLED events each tick. GameSense handles rendering; if keyboard OLED doesn't update, ensure SteelSeries GG is running and the keyboard model supports GameSense.
+
+## Uninstall / cleanup
+
+To stop and remove the integration:
+
+```sh
+# kill daemon if running
+kill "$(cat /tmp/ss_daemon.pid 2>/dev/null)" 2>/dev/null || true
+rm -f /tmp/ss_daemon.pid /tmp/ss_daemon.lock /tmp/ss_state /tmp/ss_tool /tmp/ss_tool_label /tmp/ss_transcript /tmp/ss_daemon.log
+# remove hooks from ~/.claude/settings.json or restore previous config
 ```
 
 ## Troubleshooting
 
-**Lamp not responding:**
-```sh
-# Check daemon log
-cat /tmp/moonside_daemon.log
+- coreProps.json missing → SteelSeries GG not running. Start SteelSeries GG and try again.
+- Daemon log: /tmp/ss_daemon.log
+- PID file: /tmp/ss_daemon.pid
+- If GameSense HTTP calls fail, daemon will retry on next tick. Check that the address in coreProps.json is reachable.
+- Transcript parsing errors: OLED will show `-- / --`. Ensure transcript JSONL path is correct and readable.
 
-# Verify BLE connection works
-python3 moonside_ble.py on
-```
+## Development notes
 
-**Daemon stuck:**
-```sh
-kill "$(cat /tmp/moonside_daemon.pid)"
-rm -f /tmp/moonside_daemon.pid /tmp/moonside_state
-```
+- Per-state base color and wave parameters live in `claude_hooks/steelseries_daemon.py` (`COLORS` dict and `gen_wave_bitmap`).
+- Bitmap layout for the Apex Pro is 22 columns × 6 rows, row-major (`i = row*22 + col`). The horizontal wave keys phase off the column index.
+- Top-row context indicator: `CONTEXT_INDICATOR_KEYS = 16`, `CONTEXT_FULL = 500_000`. Tweak `CONTEXT_FULL` to change the scale or `CONTEXT_GREEN` to change the color.
+- Tick rate: 50ms. Sticky tool dwell: 1.5s. Daemon debounce on working transitions: 500ms. Idle timeout: 30 minutes.
+- The hook script writes state into `/tmp/ss_state`, the tool name into `/tmp/ss_tool`, a tool-specific label (file basename, command head, pattern, …) into `/tmp/ss_tool_label`, and the transcript path into `/tmp/ss_transcript`. The daemon polls these on every tick.
 
-**bleak not found:**
-The hook auto-detects python from `python3`, `/opt/homebrew/bin/python3`, and `$CONDA_PREFIX/bin/python3`. Make sure one of them has bleak installed.
+### Hook events used
 
-## Default colors
-
-| State | Visual |
+| Hook | Argument written to `/tmp/ss_state` |
 |---|---|
-| Working | BEAT2 theme (white + navy) |
-| Idle | Solid sunset mango (255, 180, 50) |
-| Input | Solid purple (200, 0, 255) |
+| `SessionStart`, `Stop`, `Notification:idle_prompt` | `idle` |
+| `UserPromptSubmit`, `PreToolUse` (most tools) | `working` |
+| `PreToolUse:AskUserQuestion`, `PreToolUse:ExitPlanMode`, `PermissionRequest`, `Notification:permission_prompt` | `input` |
+| `PreCompact` | `compacting` |
+| `SessionEnd` | `off` |
 
-Colors are configured in `moonside_daemon.py`.
-
-## Protocol
-
-Moonside lamps use the Nordic UART Service (NUS) over BLE. Commands are ASCII text:
-
-| Command | Format | Example |
-|---|---|---|
-| LED on/off | `LEDON` / `LEDOFF` | `LEDOFF` |
-| Color (0-255) | `COLORRRRGGGBBB` | `COLOR000255000` |
-| Brightness (0-120) | `BRIGHBBB` | `BRIGH060` |
-| Theme | `THEME.NAME.R,G,B,...` | `THEME.FIRE2.255,50,0` |
+There is no `PostCompact` event — the `compacting` state clears naturally on the next `UserPromptSubmit` / `Stop` / `SessionStart` after compaction completes.
 
 ## License
 
 MIT
-
-## Acknowledgments
-
-- [HomeAssistant](https://community.home-assistant.io/t/integrating-moonside-t1-lighthouse/473578/8)
-- [TheGreyDiamond](https://thegreydiamond.de/blog/2022/10/10/reverse-engineering-moonside-lighthouse/)

@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" idle"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh idle"
           }
         ]
       }
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       }
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" idle"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh idle"
           }
         ]
       }
@@ -36,7 +36,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -63,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -72,7 +72,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -90,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -99,7 +99,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -108,7 +108,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -117,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -126,7 +126,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -135,7 +135,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -144,7 +144,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" working"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh working"
           }
         ]
       },
@@ -153,7 +153,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" input"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh input"
           }
         ]
       },
@@ -162,7 +162,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" input"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh input"
           }
         ]
       }
@@ -173,7 +173,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" input"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh input"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '' > /tmp/ss_tool && printf '' > /tmp/ss_tool_label"
           }
         ]
       }
@@ -183,7 +192,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" input"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh input"
           }
         ]
       }
@@ -194,7 +203,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" input"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh input"
           }
         ]
       },
@@ -203,7 +212,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" idle"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh idle"
           }
         ]
       }
@@ -213,7 +222,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/claude_hooks/moonside_hook.sh\" off"
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh off"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/steelseries_hook.sh compacting"
           }
         ]
       }
